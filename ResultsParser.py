@@ -8,21 +8,9 @@ import sys
 
 ###read in files
 amppredictorresults=pd.read_csv("InputFiles/DmollisAMPResults", sep="\t")
-#ampfeaturesresults=pd.read_csv("InputFiles/20240605_scored_features.csv", sep=",")
-#print(len(ampfeaturesresults))
 #print(amppredictorresults.keys())
-#sys.exit()
-
-###add probability of AMP from amppredictedresults as a column to ampfeatures
-#make empty column for new column
-#ampfeaturesresults.loc[:,"probability_AMP"]=""
-#print(ampfeaturesresults.keys())
-#add probability amp to ampfeatures
-#ampfeaturesresults["probability_AMP"]=amppredictorresults["probability_AMP"].to_numpy()
-#print(ampfeaturesresults[0:5])
 
 seqswithhighprobs=list()
-counter=0
 
 
 #find amp_probability >0.8
@@ -32,23 +20,19 @@ for rownumber in amppredictorresults.index:
     tempSeqId=amppredictorresults.loc[rownumber]["seq_id"]
     if tempProb>=0.85:
         seqswithhighprobs.append(tempSeqId)
-    
-    counter+=1
-    if counter>100000:
-        break
 
 ###Read in the clean fasta file and find the seqs with high probability
-# Read in the DNA sequence associated with the annotations
 
 #Get the full path to the DNA sequence
 seq_file_path = "/scratch/bryantj2/bb485/week09/CleanGenomes/DmollisOUT/GCA_032361265.1_ASM3236126v1_genomic_squeak.fa"
 
+#open file
 seq_file_handle = open(seq_file_path, "r")
 
 #Create an empty dictionary
 seq_dict = {}
 
-#Loop through the line in the file
+#Loop through the lines in the file
 for line in seq_file_handle:
     if line.startswith(">"):
         id_temp = line.strip() #Removes "\n"
@@ -62,68 +46,34 @@ for line in seq_file_handle:
         #append this line to the dictionary value, using the key (which is still "id_clean" from the previous line)
         seq_dict[id_clean] += seq_line
 
-
+#make an empty dictionary for high probability seqs to go
 keepers_dict=dict()
 
+#loop through dictionary of all of the seqs from clean fasta file
 for k, v in seq_dict.items():
-    if k in seqswithhighprobs:
-        keepers_dict[k]=v
+    if k in seqswithhighprobs: #ask if they are the same as the high probability seqs
+        keepers_dict[k]=v #if that is true add to new dictionary
 
 
-#proportion of sequences kept (probabiilty >=0.8) from total sequences input
+#calculate proportion of sequences kept (probabiilty >=0.8) from total sequences input
 proportionkeepseqs=len(keepers_dict.keys())/len(seq_dict)
 #print(proportionkeepseqs)
 
+#write proportion to a text file to save 
 proportionhandle=open("PredictedAMP_Proportion.txt", "a")
 proportionhandle.write("The proportion of AMPs predicted by amPEPpy is " + str(proportionkeepseqs) +" for Dmollis")
 proportionhandle.close()
 
-
+###write clean high probability seqs to a new fasta file
+#open file handle
 handle=open("DmollisPredictedAMPs.fasta", "a")
 
+#loop through keeper sequences
 for k, v in keepers_dict.items():
-    handle.write(">" + k +"\n") 
-    handle.write(v + "\n")
+    handle.write(">" + k +"\n") #write header line (sequence ID/name)
+    handle.write(v + "\n") #write sequence line
 
+#close fasta file
 handle.close()
 
 sys.exit()
-
-
-"""
-with open("Test1.fasta", "w") as handle:
-    SeqIO.write(kee.values(), handle, 'fasta')
-
-sys.exit()"""
-
-#loop through the amp_probability for seqs greater than 0.7 and add seq names either to a list or a dict w/ probability
-
-
-
-"""for seqname in amppredictorresults["seq_id"]:
-    tempseqdict=dict()
-    tempseqdict[str(seqname)]=""    
-    for probability in amppredictorresults["probability_AMP"]:
-        tempseqdict[seqname]=probability
-        #print(tempseqdict)
-        if probability>=0.7:
-            seqswithhighprobs=tempseqdict[seqname]
-            print(seqswithhighprobs)
-            break
-        sys.exit()"""
-            
-        
-
-
-
-
-###Make scatter plot 
-#x=x-axis = probability amp
-#y=y-axis = hydrophobicity
-#c=color
-ax1=ampfeaturesresults.plot.scatter(x="probability_AMP",
-                                    y="hydrophobicity.1.0",
-                                    c='DarkBlue')
-                                    
-#save plot to pdf
-ax1.savefig("scatterplothydrophobicity1.0", format="pdf")
