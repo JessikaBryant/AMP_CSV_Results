@@ -61,7 +61,7 @@ proportionkeepseqs=len(keepers_dict.keys())/len(seq_dict)
 
 #write proportion to a text file to save 
 proportionhandle=open("PredictedAMP_Proportion.txt", "a")
-proportionhandle.write("The proportion of AMPs predicted by amPEPpy is " + str(proportionkeepseqs) +" for Dmollis"\n)
+proportionhandle.write("The proportion of AMPs predicted by amPEPpy is " + str(proportionkeepseqs) +" for Dmollis.\n")
 proportionhandle.close()
 
 ###write clean high probability seqs to a new fasta file
