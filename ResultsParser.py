@@ -2,16 +2,16 @@
 ###import needed modules
 import pandas as pd
 import numpy as np
-from matplotlib import pyplot as plt
+#from matplotlib import pyplot as plt
 from Bio import SeqIO 
 import sys
+import glob
 
-###read in files
+"""###read in files
 amppredictorresults=pd.read_csv("InputFiles/DmollisAMPResults", sep="\t")
 #print(amppredictorresults.keys())
 
 seqswithhighprobs=list()
-
 
 #find amp_probability >0.8
 #loop through every row in dataframe
@@ -75,5 +75,25 @@ for k, v in keepers_dict.items():
 
 #close fasta file
 handle.close()
+"""
+#########Parse CSV Outputs From AxPEP Online##############
+#read in all csv files
+csvOutputFiles=glob.glob("/scratch/bryantj2/bb485/week09/AMP_CSV_Results/AxPEPResults/*Score.csv")
 
-sys.exit()
+OutputSeqsWithHighprobs=list
+#for loop to loop through each file, read it in, and work with it
+for file in csvOutputFiles:
+    tempfile=pd.read_csv(file, sep=",")
+    #loop through every row in dataframe
+    for rownumber in tempfile.index:
+        tempprob=tempfile.loc[rownumber]["ampep"] #add prob of AMP to a temp list
+        tempseqId=tempfile.loc[rownumber]["id"] #add accompanying seq name
+        if tempprob>=0.85:
+            OutputSeqsWithHighprobs.append("id")
+            break
+        
+#print(OutputSeqsWithHighprobs())
+
+###Make CSV File with Sequence, amPEPPy prob, AxPEP prob, length of predicted AMP seq
+finaltable=pd.df()
+
