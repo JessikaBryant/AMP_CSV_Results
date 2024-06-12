@@ -89,17 +89,18 @@ for file in csvOutputFiles:
     tempfile=pd.read_csv(file, sep=",")
     #loop through every row in dataframe
     for rownumber in tempfile.index:
-        tempprob=tempfile.loc[rownumber]["rfampep30"] #add prob of AMP to a temp list
+        tempprob=tempfile.loc[rownumber]["ampep"] #add prob of AMP to a temp list
         tempseqId=tempfile.loc[rownumber]["id"] #add accompanying seq name
         tempseqlength=len(tempfile.loc[rownumber]["sequence"])        
         counttotal+=1
-        if tempprob>=0.8:
+        if tempprob>=0.65:
             OutputSeqsWithHighprobs.append(tempseqId)
             ProbsofSeqs.append(tempprob)
             SeqLengths.append(tempseqlength)
 
 AxPEP_percentAMP=len(OutputSeqsWithHighprobs)/counttotal
-#print(OutputSeqsWithHighprobs)
+print(SeqLengths)
+#print(AxPEP_percentAMP)
 
 ###Make CSV File with Sequence, amPEPPy prob, AxPEP prob, length of predicted AMP seq
 #data frame for data to go
@@ -114,4 +115,3 @@ Finaltable.to_csv("DmollisAMP_Results.tsv", sep='\t', index=False, header=True)
 proportionhandle=open("PredictedAMP_Proportion.txt", "a")
 proportionhandle.write("The proportion of AMPs predicted by AxPEP is " + str(AxPEP_percentAMP) +" for Dmollis")
 proportionhandle.close()
-
