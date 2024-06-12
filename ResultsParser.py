@@ -7,7 +7,7 @@ from Bio import SeqIO
 import sys
 import glob
 
-"""###read in files
+###read in files
 amppredictorresults=pd.read_csv("InputFiles/DmollisAMPResults", sep="\t")
 #print(amppredictorresults.keys())
 
@@ -61,7 +61,7 @@ proportionkeepseqs=len(keepers_dict.keys())/len(seq_dict)
 
 #write proportion to a text file to save 
 proportionhandle=open("PredictedAMP_Proportion.txt", "a")
-proportionhandle.write("The proportion of AMPs predicted by amPEPpy is " + str(proportionkeepseqs) +" for Dmollis")
+proportionhandle.write("The proportion of AMPs predicted by amPEPpy is " + str(proportionkeepseqs) +" for Dmollis"\n)
 proportionhandle.close()
 
 ###write clean high probability seqs to a new fasta file
@@ -75,25 +75,43 @@ for k, v in keepers_dict.items():
 
 #close fasta file
 handle.close()
-"""
+
 #########Parse CSV Outputs From AxPEP Online##############
 #read in all csv files
 csvOutputFiles=glob.glob("/scratch/bryantj2/bb485/week09/AMP_CSV_Results/AxPEPResults/*Score.csv")
 
-OutputSeqsWithHighprobs=list
+OutputSeqsWithHighprobs=list()
+ProbsofSeqs=list()
+SeqLengths=list()
+counttotal=0
 #for loop to loop through each file, read it in, and work with it
 for file in csvOutputFiles:
     tempfile=pd.read_csv(file, sep=",")
     #loop through every row in dataframe
     for rownumber in tempfile.index:
-        tempprob=tempfile.loc[rownumber]["ampep"] #add prob of AMP to a temp list
+        tempprob=tempfile.loc[rownumber]["rfampep30"] #add prob of AMP to a temp list
         tempseqId=tempfile.loc[rownumber]["id"] #add accompanying seq name
-        if tempprob>=0.85:
-            OutputSeqsWithHighprobs.append("id")
-            break
-        
-#print(OutputSeqsWithHighprobs())
+        tempseqlength=len(tempfile.loc[rownumber]["sequence"])        
+        counttotal+=1
+        if tempprob>=0.8:
+            OutputSeqsWithHighprobs.append(tempseqId)
+            ProbsofSeqs.append(tempprob)
+            SeqLengths.append(tempseqlength)
+
+AxPEP_percentAMP=len(OutputSeqsWithHighprobs)/counttotal
+#print(OutputSeqsWithHighprobs)
 
 ###Make CSV File with Sequence, amPEPPy prob, AxPEP prob, length of predicted AMP seq
-finaltable=pd.df()
+#data frame for data to go
+Finaltable=pd.DataFrame({"Seq_ID":OutputSeqsWithHighprobs,"Probability_AMP":ProbsofSeqs, "Sequence_Length":SeqLengths})
+#print(Finaltable)
+Finaltable[["Strand","Seq_ID"]]=Finaltable.Seq_ID.str.split("|", expand=True, regex=False)
+Finaltable[["Seq_ID","Coordinates"]]=Finaltable.Seq_ID.str.split(":", expand=True, regex=False)
+#print(Finaltable)
+
+Finaltable.to_csv("DmollisAMP_Results.tsv", sep='\t', index=False, header=True)
+
+proportionhandle=open("PredictedAMP_Proportion.txt", "a")
+proportionhandle.write("The proportion of AMPs predicted by AxPEP is " + str(AxPEP_percentAMP) +" for Dmollis")
+proportionhandle.close()
 
